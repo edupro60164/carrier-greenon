@@ -72,7 +72,7 @@ Supabase Dashboard의 **Authentication → URL Configuration**에서 다음 값�
 - Health Check: `/health`
 - `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`는 Dashboard 입력값 사용
 
-Render 서비스 `carrier-greenon`은 GitHub `main` 브랜치 변경을 자동 배포합니다. 서버는 Render 요구사항에 맞춰 `0.0.0.0`과 `PORT`에 바인딩합니다.
+Render 서비스 `carrier-greenon`은 GitHub `main` 브랜치를 배포 대상으로 사용합니다. 현재 공개 저장소 복제와 수동 배포는 정상 동작하며, 커밋 푸시를 자동 배포하려면 Render GitHub 앱에 이 저장소의 웹훅 접근 권한을 추가해야 합니다. 서버는 Render 요구사항에 맞춰 `0.0.0.0`과 `PORT`에 바인딩합니다.
 운영 환경에서 필수 Supabase 값이 없거나 publishable key 형식이 아니면 `/health`가 `503`을 반환해 잘못된 배포를 차단합니다.
 
 ## 보안 메모
