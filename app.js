@@ -533,10 +533,11 @@ async function loadCurrentWeather() {
   }
 }
 
-/** 로그아웃하거나 사용자가 바뀔 때 이전 사용자의 화면 데이터를 즉시 비웁니다. */
+/** 로그아웃하거나 사용자가 바뀔 때 이전 사용자의 개인 데이터를 즉시 비웁니다. */
 function resetSupabaseDataState() {
   walletState = createEmptyWalletState();
-  rewardProducts = [];
+  // 리워드 상품은 공개 카탈로그이므로 로그아웃해도 유지합니다.
+  // 포인트와 구매내역 같은 사용자별 데이터만 위의 지갑 상태와 함께 초기화합니다.
   missionDefinitions = [];
   missionDefinition = null;
   currentUserMissionId = null;
@@ -547,6 +548,34 @@ function resetSupabaseDataState() {
 
   renderMissionState();
   renderWallet();
+  renderRewardShop();
+}
+
+/** Supabase 상품 행을 리워드 카드가 사용하는 안전한 화면 데이터로 변환합니다. */
+function applyRewardRows(rewardRows) {
+  rewardProducts = rewardRows.map((product) => ({
+    id: product.id,
+    category: product.category,
+    name: product.name,
+    description: product.description,
+    detail: product.detail,
+    price: product.price_points,
+    emoji: product.emoji,
+    tone: product.tone,
+  }));
+}
+
+/** 로그인 전에도 활성 리워드 카탈로그를 볼 수 있도록 공개 읽기 데이터만 불러옵니다. */
+async function loadPublicRewards() {
+  const { data, error } = await greenOnSupabase
+    .from("rewards")
+    .select("id, category, name, description, detail, price_points, emoji, tone")
+    .eq("is_active", true)
+    .order("id", { ascending: true });
+
+  if (error) throw error;
+
+  applyRewardRows(data ?? []);
   renderRewardShop();
 }
 
@@ -666,16 +695,7 @@ async function loadSupabaseData(userId) {
   renderMissionDefinition();
   applyUserMissionRow(todayMission);
 
-  rewardProducts = rewardResponse.data.map((product) => ({
-    id: product.id,
-    category: product.category,
-    name: product.name,
-    description: product.description,
-    detail: product.detail,
-    price: product.price_points,
-    emoji: product.emoji,
-    tone: product.tone,
-  }));
+  applyRewardRows(rewardResponse.data);
 
   const transactions = transactionResponse.data.map((transaction) => ({
     id: transaction.id,
@@ -778,6 +798,14 @@ async function initializeSupabaseAuth() {
   // PHASE 6~7에서 사용한 교육용 localStorage 데이터는 실제 DB 데이터와 섞이지 않게 제거합니다.
   window.localStorage.removeItem("carrier-greenon-auth-v1");
   window.localStorage.removeItem("carrier-greenon-wallet-v1");
+
+  // 공개 카탈로그를 세션 확인보다 먼저 읽어 방문자도 리워드 상품을 바로 둘러볼 수 있게 합니다.
+  try {
+    await loadPublicRewards();
+  } catch (rewardError) {
+    console.warn("공개 리워드 상품을 불러오지 못했습니다.", rewardError);
+    showToast("리워드 상품을 불러오지 못했어요. 잠시 후 새로고침해 주세요.", "danger");
+  }
 
   const { data, error } = await greenOnSupabase.auth.getSession();
   if (error) {
