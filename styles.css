@@ -4254,3 +4254,628 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   SUMMER COAST EDITION
+   바다, 맑은 하늘, 나뭇잎 사이 햇빛을 모티프로 한 여름 디자인입니다.
+   기능 상태를 나타내는 Red 스타일은 기존 규칙을 그대로 유지합니다.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --summer-ocean: #147a99;
+  --summer-deep: #0d536d;
+  --summer-aqua: #61c4c7;
+  --summer-leaf: #4f8d73;
+  --summer-sun: #ffd36b;
+  --summer-sand: #fff8e8;
+  --summer-foam: #f4fbfc;
+  --summer-glass: rgba(255, 255, 255, 0.82);
+  --summer-line: rgba(153, 214, 240, 0.5);
+  --shadow-card: 0 18px 44px rgba(36, 95, 117, 0.11);
+  --shadow-soft: 0 10px 28px rgba(36, 95, 117, 0.08);
+}
+
+html {
+  background: #dff1f5;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 4%, rgba(255, 211, 107, 0.24), transparent 16rem),
+    radial-gradient(circle at 92% 12%, rgba(97, 196, 199, 0.3), transparent 25rem),
+    linear-gradient(155deg, #f8fcfb 0%, #e2f2fa 48%, #dbeff2 100%);
+}
+
+.site-background::before,
+.site-background::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.site-background::before {
+  width: 360px;
+  height: 280px;
+  top: -80px;
+  left: -100px;
+  opacity: 0.22;
+  transform: rotate(-12deg);
+  background:
+    radial-gradient(ellipse at 22% 18%, var(--summer-leaf) 0 9%, transparent 10%),
+    radial-gradient(ellipse at 48% 38%, var(--summer-leaf) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 72% 16%, var(--summer-leaf) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 85% 56%, var(--summer-leaf) 0 8%, transparent 9%);
+  filter: blur(1px);
+}
+
+.site-background::after {
+  right: -140px;
+  bottom: -100px;
+  width: 430px;
+  height: 430px;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 50%;
+  box-shadow: inset 0 0 90px rgba(153, 214, 240, 0.2);
+}
+
+.bubble {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: inset 0 0 44px rgba(97, 196, 199, 0.13);
+}
+
+.app-shell {
+  background: rgba(250, 253, 252, 0.95);
+  box-shadow: 0 30px 90px rgba(13, 83, 109, 0.16);
+}
+
+.app-header {
+  min-height: 74px;
+  border-bottom-color: rgba(153, 214, 240, 0.38);
+  background: rgba(250, 253, 252, 0.84);
+  backdrop-filter: blur(24px) saturate(1.35);
+}
+
+.brand-mark {
+  color: var(--white);
+  background: linear-gradient(145deg, var(--summer-aqua), var(--summer-ocean));
+  box-shadow: 0 8px 20px rgba(20, 122, 153, 0.2);
+}
+
+.brand strong {
+  color: var(--summer-ocean);
+  letter-spacing: 0.13em;
+}
+
+.brand > span > span,
+.welcome-copy h1,
+.hero-card h2,
+.mission-page-header h1,
+.wallet-page-header h1,
+.reward-page-header h1,
+.my-page-header h1 {
+  font-family: Manrope, Pretendard, sans-serif;
+}
+
+.icon-button {
+  border-color: rgba(153, 214, 240, 0.5);
+  border-radius: 50%;
+  color: var(--summer-ocean);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 20px rgba(36, 95, 117, 0.07);
+}
+
+.app-main {
+  padding-top: 30px;
+}
+
+.welcome-copy .eyebrow,
+.section-label,
+.reward-eyebrow,
+.green-level-eyebrow {
+  color: var(--summer-ocean);
+  letter-spacing: 0.14em;
+}
+
+.welcome-copy .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-bottom: 14px;
+  padding: 0 11px;
+  border: 1px solid rgba(153, 214, 240, 0.65);
+  border-radius: 999px;
+  background: rgba(226, 242, 250, 0.72);
+}
+
+.welcome-copy h1 {
+  max-width: 430px;
+  font-size: clamp(1.9rem, 8vw, 2.65rem);
+  line-height: 1.15;
+  letter-spacing: -0.065em;
+}
+
+.welcome-copy h1 span {
+  color: transparent;
+  background: linear-gradient(100deg, var(--summer-ocean), var(--summer-aqua));
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.welcome-copy > p:last-child {
+  color: var(--ink-700);
+}
+
+.hero-card {
+  min-height: 432px;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 34%),
+    linear-gradient(156deg, #2f7b95 0%, #1f708d 52%, #0d536d 100%);
+  box-shadow: 0 28px 54px rgba(13, 83, 109, 0.25);
+}
+
+.hero-card::before {
+  position: absolute;
+  z-index: -1;
+  width: 250px;
+  height: 190px;
+  top: -42px;
+  right: -45px;
+  content: "";
+  opacity: 0.4;
+  transform: rotate(8deg);
+  background:
+    radial-gradient(ellipse at 20% 30%, #285f5d 0 10%, transparent 11%),
+    radial-gradient(ellipse at 43% 18%, #39766a 0 12%, transparent 13%),
+    radial-gradient(ellipse at 62% 48%, #285f5d 0 11%, transparent 12%),
+    radial-gradient(ellipse at 82% 25%, #4c8c71 0 10%, transparent 11%),
+    radial-gradient(ellipse at 90% 66%, #285f5d 0 9%, transparent 10%);
+  filter: blur(0.4px);
+}
+
+.hero-card::after {
+  z-index: -1;
+  width: 62px;
+  height: 62px;
+  top: 42px;
+  right: 36px;
+  border: 0;
+  background: var(--summer-sun);
+  box-shadow: 0 0 46px rgba(255, 211, 107, 0.5);
+}
+
+.hero-card-copy {
+  padding: 27px 25px 0;
+}
+
+.status-pill {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.status-dot {
+  background: #d6f7e8;
+}
+
+.summer-coordinate {
+  display: block;
+  margin-top: 17px;
+  color: rgba(255, 255, 255, 0.68);
+  font-family: Manrope, sans-serif;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.hero-card h2 {
+  margin-top: 8px;
+  font-size: 1.78rem;
+  line-height: 1.2;
+}
+
+.hero-card p {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.primary-button {
+  min-height: 49px;
+  padding-inline: 20px;
+  border-radius: 999px;
+  color: var(--summer-deep);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 24px rgba(13, 83, 109, 0.2);
+}
+
+.air-illustration {
+  height: 156px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    repeating-radial-gradient(ellipse at 50% 116%, transparent 0 13px, rgba(255, 255, 255, 0.15) 14px 15px),
+    linear-gradient(180deg, rgba(153, 214, 240, 0.05), rgba(159, 214, 217, 0.38));
+}
+
+.air-illustration::before {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 42px;
+  content: "";
+  background: linear-gradient(180deg, transparent, rgba(7, 70, 91, 0.28));
+}
+
+.aircon-unit {
+  right: 30px;
+  bottom: 39px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: linear-gradient(175deg, #ffffff, #dbeff2);
+  box-shadow: 0 18px 34px rgba(4, 58, 78, 0.3), inset 0 -8px 12px rgba(159, 214, 217, 0.24);
+}
+
+.cloud {
+  opacity: 0.64;
+}
+
+.section-block {
+  margin-top: 38px;
+}
+
+.section-heading h2,
+.point-history-heading h2,
+.reward-section-heading h2,
+.green-report-heading h2 {
+  font-family: Manrope, Pretendard, sans-serif;
+  letter-spacing: -0.045em;
+}
+
+.weather-source-badge,
+.simulation-badge,
+.step-badge,
+.mission-date,
+.reward-wallet-balance {
+  border-color: rgba(153, 214, 240, 0.7);
+  background: rgba(226, 242, 250, 0.76);
+}
+
+.weather-card,
+.aircon-status-card,
+.simulation-panel,
+.feature-card,
+.mission-card,
+.mission-simulator,
+.wallet-summary article,
+.wallet-reward-cta,
+.point-history,
+.reward-catalog,
+.reward-order-history,
+.reward-product-card,
+.my-login-card,
+.my-guest-benefits article,
+.my-profile-card,
+.green-report {
+  border-color: var(--summer-line);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 251, 252, 0.9));
+  box-shadow: var(--shadow-card);
+}
+
+.weather-card,
+.aircon-status-card,
+.mission-card,
+.my-login-card {
+  border-radius: 30px;
+}
+
+.weather-card:not(.is-danger) {
+  background:
+    radial-gradient(circle at 92% 12%, rgba(255, 211, 107, 0.32), transparent 105px),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(226, 242, 250, 0.74));
+}
+
+.weather-location-icon,
+.device-icon,
+.mission-leaf-icon,
+.feature-icon,
+.summary-icon,
+.wallet-reward-cta-icon,
+.report-icon {
+  border-radius: 18px;
+}
+
+.weather-symbol {
+  filter: drop-shadow(0 10px 18px rgba(255, 190, 61, 0.22));
+}
+
+.weather-stat-grid > div,
+.aircon-stat {
+  border-color: rgba(153, 214, 240, 0.42);
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.weather-mission-guide,
+.aircon-message,
+.mission-status-banner {
+  border-color: rgba(153, 214, 240, 0.5);
+  background: rgba(226, 242, 250, 0.62);
+}
+
+.aircon-state-chip,
+.mission-state-chip,
+.coming-tag.is-ready,
+.live-badge {
+  color: var(--summer-ocean);
+  background: rgba(226, 242, 250, 0.84);
+}
+
+.simulation-panel summary,
+.scenario-button,
+.point-filter-button,
+.reward-category-button {
+  border-radius: 999px;
+}
+
+.scenario-button.is-selected,
+.point-filter-button.is-active,
+.reward-category-button.is-active,
+.auth-mode-button.is-active {
+  border-color: rgba(20, 122, 153, 0.28);
+  color: var(--summer-deep);
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(20, 122, 153, 0.1);
+}
+
+.feature-grid {
+  gap: 12px;
+}
+
+.feature-card {
+  border-radius: 22px;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.feature-card:hover,
+.reward-product-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(97, 196, 199, 0.72);
+  box-shadow: 0 18px 36px rgba(20, 122, 153, 0.14);
+}
+
+.feature-icon-blue,
+.feature-icon-sky,
+.feature-icon-green,
+.feature-icon-purple {
+  color: var(--summer-ocean);
+  background: linear-gradient(145deg, #e2f2fa, #dbeff2);
+}
+
+.eco-tip,
+.mission-guide,
+.wallet-storage-notice,
+.reward-notice,
+.my-data-notice {
+  border-color: rgba(97, 196, 199, 0.44);
+  border-radius: 22px;
+  background: rgba(226, 242, 250, 0.55);
+}
+
+.mission-page-header,
+.wallet-page-header,
+.reward-page-header,
+.my-page-header {
+  position: relative;
+  overflow: hidden;
+  padding: 21px;
+  border: 1px solid rgba(153, 214, 240, 0.48);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 92% 18%, rgba(255, 211, 107, 0.24), transparent 80px),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(226, 242, 250, 0.68));
+}
+
+.mission-page-header::after,
+.wallet-page-header::after,
+.reward-page-header::after,
+.my-page-header::after {
+  position: absolute;
+  right: -22px;
+  bottom: -28px;
+  width: 120px;
+  height: 66px;
+  content: "";
+  border: 1px solid rgba(97, 196, 199, 0.34);
+  border-radius: 50%;
+  box-shadow: 0 -13px 0 rgba(153, 214, 240, 0.12), 0 -25px 0 rgba(153, 214, 240, 0.08);
+}
+
+.primary-action-button,
+.wallet-action-button,
+.my-login-button,
+.auth-submit-button,
+.reward-purchase-button {
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--summer-deep), var(--summer-ocean));
+  box-shadow: 0 12px 24px rgba(13, 83, 109, 0.22);
+}
+
+.time-action-button,
+.retry-action-button,
+.my-signup-button,
+.secondary-button {
+  border-radius: 999px;
+}
+
+.mission-progress span,
+.filter-progress span,
+.green-level-progress span {
+  background: linear-gradient(90deg, var(--summer-ocean), var(--summer-aqua));
+}
+
+.green-level-progress span {
+  background: linear-gradient(90deg, #dff8ff, var(--palette-mint));
+}
+
+.wallet-balance-card,
+.green-level-card {
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 211, 107, 0.28), transparent 110px),
+    linear-gradient(145deg, var(--summer-deep), var(--summer-ocean) 62%, #267f91);
+  box-shadow: 0 25px 48px rgba(13, 83, 109, 0.24);
+}
+
+.green-impact-card {
+  border-color: rgba(97, 196, 199, 0.48);
+  background:
+    radial-gradient(circle at 92% 10%, rgba(255, 211, 107, 0.2), transparent 90px),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(229, 244, 244, 0.9));
+  box-shadow: var(--shadow-card);
+}
+
+.wallet-card-decoration span,
+.green-level-decoration span {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.wallet-summary article,
+.green-report-grid article {
+  border-radius: 22px;
+}
+
+.wallet-reward-cta {
+  border-radius: 24px;
+}
+
+.point-filter-tabs,
+.reward-category-tabs,
+.auth-mode-tabs {
+  background: rgba(219, 239, 242, 0.62);
+}
+
+.reward-product-card {
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+.reward-product-visual[data-product-tone] {
+  background:
+    radial-gradient(circle at 76% 22%, rgba(255, 255, 255, 0.82), transparent 34%),
+    linear-gradient(145deg, #e2f2fa, #9fd6d9);
+}
+
+.reward-product-button {
+  border-radius: 999px;
+}
+
+.my-login-card {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255, 211, 107, 0.18), transparent 110px),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(226, 242, 250, 0.78));
+}
+
+.green-report-grid article {
+  border-color: rgba(153, 214, 240, 0.44);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.auth-dialog-content,
+.reward-dialog-content {
+  border: 1px solid rgba(153, 214, 240, 0.55);
+  border-radius: 30px;
+  background: rgba(250, 253, 252, 0.96);
+  box-shadow: 0 30px 80px rgba(13, 83, 109, 0.28);
+}
+
+.auth-dialog::backdrop,
+.reward-detail-dialog::backdrop {
+  background: rgba(7, 57, 75, 0.48);
+  backdrop-filter: blur(8px);
+}
+
+.bottom-navigation {
+  right: 50%;
+  bottom: 12px;
+  left: auto;
+  width: min(calc(100% - 24px), 536px);
+  min-height: 72px;
+  padding: 8px;
+  transform: translateX(50%);
+  border: 1px solid rgba(153, 214, 240, 0.58);
+  border-radius: 24px;
+  background: rgba(250, 253, 252, 0.88);
+  box-shadow: 0 16px 38px rgba(13, 83, 109, 0.18);
+  backdrop-filter: blur(24px) saturate(1.4);
+}
+
+.nav-item {
+  border-radius: 18px;
+  color: #76909b;
+}
+
+.nav-item.is-active {
+  color: var(--summer-deep);
+  background: linear-gradient(145deg, rgba(226, 242, 250, 0.92), rgba(219, 239, 242, 0.92));
+}
+
+.nav-item.is-active::before {
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  background: var(--summer-aqua);
+}
+
+.toast {
+  bottom: 98px;
+  border-color: rgba(153, 214, 240, 0.62);
+  border-radius: 20px;
+  background: rgba(250, 253, 252, 0.94);
+  backdrop-filter: blur(20px);
+}
+
+@media (min-width: 600px) {
+  .app-shell {
+    border-color: rgba(153, 214, 240, 0.52);
+    border-radius: 38px;
+  }
+
+  .bottom-navigation {
+    bottom: 30px;
+    border-radius: 24px;
+  }
+
+  .hero-card {
+    min-height: 420px;
+  }
+
+  .toast {
+    bottom: 116px;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-card {
+    min-height: 442px;
+  }
+
+  .hero-card::after {
+    width: 52px;
+    height: 52px;
+    right: 24px;
+  }
+
+  .hero-card-copy {
+    padding-inline: 21px;
+  }
+
+  .mission-page-header,
+  .wallet-page-header,
+  .reward-page-header,
+  .my-page-header {
+    padding: 18px;
+  }
+}
