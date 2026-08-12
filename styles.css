@@ -5103,45 +5103,72 @@ body {
   }
 }
 
-/* 생성한 여름 바다 캐릭터 아트를 홈 히어로에 안전하게 배치합니다. */
+/* 맑은 물 배경과 투명 캐릭터를 서로 다른 레이어로 배치합니다. */
 .hero-card {
-  display: flex;
-  min-height: 560px;
+  min-height: 540px;
   border-color: rgba(153, 214, 240, 0.65);
   color: var(--ink-900);
-  background: linear-gradient(180deg, #f7fcfd 0%, #e2f2fa 45%, #99d6f0 100%);
+  background: var(--palette-ice);
   box-shadow: 0 28px 58px rgba(13, 83, 109, 0.2);
-  flex-direction: column;
 }
 
-.hero-card::before,
 .hero-card::after {
   display: none;
 }
 
-.summer-hero-art {
+.hero-card::before {
   position: absolute;
-  z-index: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  z-index: 1;
+  inset: 0;
   display: block;
-  width: 100%;
-  height: 58%;
-  object-fit: cover;
-  object-position: center 54%;
+  width: auto;
+  height: auto;
+  content: "";
+  opacity: 1;
+  transform: none;
+  pointer-events: none;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.08) 48%, transparent 68%),
+    linear-gradient(180deg, transparent 64%, rgba(13, 83, 109, 0.12) 100%);
+  filter: none;
 }
 
-.summer-hero-art::selection {
-  background: transparent;
+.summer-hero-water {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.summer-hero-character {
+  position: absolute;
+  z-index: 2;
+  right: -4%;
+  bottom: -1%;
+  display: block;
+  width: min(57%, 300px);
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 20px 18px rgba(13, 83, 109, 0.2));
+  user-select: none;
 }
 
 .hero-card-copy {
   position: relative;
-  z-index: 2;
-  min-height: 260px;
-  padding: 25px 25px 36px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 251, 252, 0.95) 72%, rgba(226, 242, 250, 0.84) 100%);
+  z-index: 3;
+  width: min(69%, 310px);
+  min-height: 0;
+  margin: 22px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 16px 34px rgba(13, 83, 109, 0.13), inset 0 1px rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(15px) saturate(1.18);
 }
 
 .hero-card .status-pill {
@@ -5161,7 +5188,9 @@ body {
 }
 
 .hero-card h2 {
+  margin-top: 9px;
   color: var(--summer-deep);
+  font-size: 1.55rem;
 }
 
 .hero-card p {
@@ -5180,30 +5209,39 @@ body {
 
 @media (min-width: 600px) {
   .hero-card {
-    min-height: 570px;
+    min-height: 550px;
   }
 
-  .summer-hero-art {
-    height: 60%;
+  .summer-hero-character {
+    right: -2%;
+    width: min(54%, 310px);
   }
 }
 
 @media (max-width: 420px) {
   .hero-card {
-    min-height: 540px;
+    min-height: 525px;
   }
 
   .hero-card-copy {
-    min-height: 270px;
-    padding: 22px 20px 34px;
+    width: min(74%, 260px);
+    margin: 16px;
+    padding: 17px;
   }
 
-  .summer-hero-art {
-    height: 54%;
-    object-position: 58% 55%;
+  .summer-hero-character {
+    right: -9%;
+    bottom: -1%;
+    width: 64%;
   }
 
   .hero-card h2 {
-    font-size: 1.58rem;
+    font-size: 1.4rem;
+  }
+
+  .hero-card .primary-button {
+    min-height: 45px;
+    padding-inline: 16px;
+    font-size: 0.78rem;
   }
 }
