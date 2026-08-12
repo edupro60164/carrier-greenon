@@ -1688,6 +1688,273 @@ function showToast(message, tone = "normal") {
   }, 2400);
 }
 
+/**
+ * 홈 화면의 COOL GREEN 문구를 점과 짧은 선으로 직접 그립니다.
+ * 폰트 파일이나 애니메이션 라이브러리를 사용하지 않아도 동일한 모양을 유지할 수 있습니다.
+ */
+function initializeBreezeType() {
+  const canvas = document.querySelector("#breezeTypeCanvas");
+  const canvasWrap = document.querySelector("#breezeCanvasWrap");
+  const modeButtons = document.querySelectorAll("[data-breeze-mode]");
+  const spacingRange = document.querySelector("#breezeSpacingRange");
+  const spacingValue = document.querySelector("#breezeSpacingValue");
+  const radiusRange = document.querySelector("#breezeRadiusRange");
+  const radiusValue = document.querySelector("#breezeRadiusValue");
+  const motionNote = document.querySelector("#breezeMotionNote");
+
+  if (!canvas || !canvasWrap || !spacingRange || !radiusRange) {
+    return;
+  }
+
+  const context = canvas.getContext("2d");
+  const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  // 알파벳을 5×7 격자로 표현합니다. 1인 칸만 점 또는 짧은 대시 입자가 됩니다.
+  const glyphs = {
+    C: ["1111", "1000", "1000", "1000", "1000", "1000", "1111"],
+    O: ["0110", "1001", "1001", "1001", "1001", "1001", "0110"],
+    L: ["1000", "1000", "1000", "1000", "1000", "1000", "1111"],
+    G: ["0111", "1000", "1000", "1011", "1001", "1001", "0111"],
+    R: ["1110", "1001", "1001", "1110", "1010", "1001", "1001"],
+    E: ["1111", "1000", "1000", "1110", "1000", "1000", "1111"],
+    N: ["1001", "1101", "1101", "1011", "1011", "1001", "1001"],
+  };
+
+  const words = ["COOL", "GREEN"];
+  let particles = [];
+  let wordBounds = [];
+  let interactionMode = "word";
+  let letterSpacing = Number(spacingRange.value);
+  let pickupRadius = Number(radiusRange.value);
+  let pointer = { x: -1000, y: -1000, active: false };
+  let animationFrame = 0;
+  let previousTime = 0;
+
+  /** 현재 카드 너비에 맞춰 글자 크기와 모든 입자의 원래 좌표를 다시 계산합니다. */
+  function buildParticles() {
+    const bounds = canvasWrap.getBoundingClientRect();
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(280, bounds.width);
+    const height = Math.max(120, bounds.height);
+
+    canvas.width = Math.round(width * pixelRatio);
+    canvas.height = Math.round(height * pixelRatio);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+    const columnsPerWord = words.map((word) =>
+      [...word].reduce(
+        (total, letter) => total + glyphs[letter][0].length + 1 + letterSpacing * 0.22,
+        0,
+      ),
+    );
+    const totalColumns = columnsPerWord[0] + columnsPerWord[1] + 4.2;
+    const cellSize = Math.min((width - 34) / totalColumns, (height - 32) / 7, 16);
+    const wordGap = cellSize * 4.2;
+    const totalWidth = totalColumns * cellSize;
+    const startX = (width - totalWidth) / 2;
+    const startY = (height - cellSize * 6) / 2;
+    const oldParticles = particles;
+
+    particles = [];
+    wordBounds = [];
+    let wordX = startX;
+
+    words.forEach((word, wordIndex) => {
+      const bound = { left: wordX - cellSize, top: startY - cellSize, right: wordX, bottom: startY + cellSize * 7 };
+      let letterX = wordX;
+
+      [...word].forEach((letter, letterIndex) => {
+        const pattern = glyphs[letter];
+
+        pattern.forEach((row, rowIndex) => {
+          [...row].forEach((cell, columnIndex) => {
+            if (cell !== "1") return;
+
+            const homeX = letterX + columnIndex * cellSize;
+            const homeY = startY + rowIndex * cellSize;
+            const previous = oldParticles[particles.length];
+
+            particles.push({
+              x: previous?.x ?? homeX,
+              y: previous?.y ?? homeY,
+              homeX,
+              homeY,
+              vx: previous?.vx ?? 0,
+              vy: previous?.vy ?? 0,
+              wordIndex,
+              // 점과 대시가 한 글자 안에서 자연스럽게 섞이도록 교차 배치합니다.
+              shape: (rowIndex + columnIndex + letterIndex) % 3 === 0 ? "dash" : "dot",
+              seed: Math.random() * Math.PI * 2,
+              active: false,
+            });
+          });
+        });
+
+        letterX += (pattern[0].length + 1) * cellSize + letterSpacing * cellSize * 0.22;
+      });
+
+      bound.right = letterX - cellSize * 0.5;
+      wordBounds.push(bound);
+      wordX = bound.right + wordGap;
+    });
+
+    drawParticles();
+  }
+
+  /** 커서 위치와 선택한 모드에 따라 이번 프레임에 바람을 맞는 입자를 판정합니다. */
+  function updateActiveParticles() {
+    let activeWord = -1;
+
+    if (pointer.active && interactionMode === "word") {
+      activeWord = wordBounds.findIndex(
+        (bound) => pointer.x >= bound.left && pointer.x <= bound.right && pointer.y >= bound.top && pointer.y <= bound.bottom,
+      );
+    }
+
+    particles.forEach((particle) => {
+      const distance = Math.hypot(particle.x - pointer.x, particle.y - pointer.y);
+      particle.active = pointer.active && (
+        interactionMode === "word" ? particle.wordIndex === activeWord : distance <= pickupRadius
+      );
+    });
+  }
+
+  /** 흩어진 입자에는 유기적인 미세 움직임을, 돌아오는 입자에는 탄성 스프링을 적용합니다. */
+  function moveParticles(time, delta) {
+    updateActiveParticles();
+
+    particles.forEach((particle) => {
+      if (particle.active) {
+        const dx = particle.x - pointer.x;
+        const dy = particle.y - pointer.y;
+        const distance = Math.max(12, Math.hypot(dx, dy));
+        const influence = interactionMode === "word" ? 1 : Math.max(0, 1 - distance / pickupRadius);
+        const angle = Math.atan2(dy, dx) + Math.sin(time * 0.0017 + particle.seed) * 0.42;
+
+        // 브라운 운동처럼 매 프레임 작은 방향 변화를 더해 흩어진 글자가 정지하지 않게 합니다.
+        particle.vx += (Math.cos(angle) * (0.2 + influence * 0.58) + (Math.random() - 0.5) * 0.34) * delta;
+        particle.vy += (Math.sin(angle) * (0.2 + influence * 0.58) + (Math.random() - 0.5) * 0.34) * delta;
+      } else {
+        const spring = 0.075 * delta;
+        particle.vx += (particle.homeX - particle.x) * spring;
+        particle.vy += (particle.homeY - particle.y) * spring;
+      }
+
+      const damping = particle.active ? 0.92 : 0.78;
+      particle.vx *= Math.pow(damping, delta);
+      particle.vy *= Math.pow(damping, delta);
+      particle.x += particle.vx * delta;
+      particle.y += particle.vy * delta;
+    });
+  }
+
+  /** 입자를 원형 점과 짧은 둥근 대시로 그려 별도의 CSS 폰트가 필요 없게 합니다. */
+  function drawParticles() {
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    context.clearRect(0, 0, width, height);
+
+    particles.forEach((particle) => {
+      context.save();
+      context.translate(particle.x, particle.y);
+      context.fillStyle = particle.active ? "#ffd36b" : "rgba(255, 255, 255, 0.93)";
+      context.shadowColor = particle.active ? "rgba(255, 211, 107, 0.46)" : "rgba(153, 214, 240, 0.25)";
+      context.shadowBlur = particle.active ? 9 : 4;
+      context.beginPath();
+
+      if (particle.shape === "dash") {
+        context.roundRect(-4.4, -1.8, 8.8, 3.6, 2);
+      } else {
+        context.arc(0, 0, 2.35, 0, Math.PI * 2);
+      }
+
+      context.fill();
+      context.restore();
+    });
+  }
+
+  function animate(time) {
+    const delta = Math.min(2, Math.max(0.45, (time - previousTime) / 16.67 || 1));
+    previousTime = time;
+    moveParticles(time, delta);
+    drawParticles();
+    animationFrame = window.requestAnimationFrame(animate);
+  }
+
+  /** 포인터 좌표는 확대·축소된 화면에서도 캔버스 내부 좌표로 변환합니다. */
+  function updatePointer(event) {
+    const bounds = canvas.getBoundingClientRect();
+    pointer = {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+      active: !reducedMotionQuery.matches,
+    };
+  }
+
+  canvas.addEventListener("pointermove", updatePointer);
+  canvas.addEventListener("pointerdown", updatePointer);
+  canvas.addEventListener("pointerleave", () => {
+    pointer.active = false;
+  });
+  canvas.addEventListener("pointerup", () => {
+    pointer.active = false;
+  });
+  canvas.addEventListener("pointercancel", () => {
+    pointer.active = false;
+  });
+
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      interactionMode = button.dataset.breezeMode;
+      modeButtons.forEach((item) => {
+        const isActive = item === button;
+        item.classList.toggle("is-active", isActive);
+        item.setAttribute("aria-pressed", String(isActive));
+      });
+    });
+  });
+
+  spacingRange.addEventListener("input", () => {
+    letterSpacing = Number(spacingRange.value);
+    spacingValue.value = spacingRange.value;
+    buildParticles();
+  });
+
+  radiusRange.addEventListener("input", () => {
+    pickupRadius = Number(radiusRange.value);
+    radiusValue.value = radiusRange.value;
+  });
+
+  /** 운영체제의 모션 줄이기 설정이 바뀌면 애니메이션도 즉시 켜거나 끕니다. */
+  function applyMotionPreference() {
+    window.cancelAnimationFrame(animationFrame);
+    pointer.active = false;
+    motionNote.hidden = !reducedMotionQuery.matches;
+
+    if (reducedMotionQuery.matches) {
+      particles.forEach((particle) => {
+        particle.x = particle.homeX;
+        particle.y = particle.homeY;
+        particle.vx = 0;
+        particle.vy = 0;
+        particle.active = false;
+      });
+      drawParticles();
+    } else {
+      previousTime = performance.now();
+      animationFrame = window.requestAnimationFrame(animate);
+    }
+  }
+
+  const resizeObserver = new ResizeObserver(buildParticles);
+  resizeObserver.observe(canvasWrap);
+  reducedMotionQuery.addEventListener?.("change", applyMotionPreference);
+  buildParticles();
+  applyMotionPreference();
+}
+
 // 하단 메뉴를 누르면 해당 화면으로 전환합니다.
 navigationItems.forEach((item) => {
   item.addEventListener("click", () => {
@@ -1808,6 +2075,9 @@ missionDate.textContent = new Intl.DateTimeFormat("ko-KR", {
 renderMissionState();
 renderWallet();
 renderRewardShop();
+
+// 홈의 여름 도트 타이포 인터랙션을 마지막에 시작해 주요 데이터 렌더링을 방해하지 않게 합니다.
+initializeBreezeType();
 
 // 마지막으로 Supabase의 실제 로그인 세션을 확인해 MY 화면을 복원합니다.
 initializeSupabaseAuth().catch((error) => {

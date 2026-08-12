@@ -56,14 +56,21 @@
           </div>
 
           <article class="hero-card">
+            <img
+              class="summer-hero-art"
+              src="assets/greenon-summer-mascot-hero.png"
+              alt="청량한 여름 바닷가에서 에어컨 리모컨을 든 파란 GreenON 바람새 캐릭터"
+              width="1536"
+              height="1024"
+            />
             <div class="hero-card-copy">
               <span class="status-pill">
                 <span class="status-dot"></span>
-                SUMMER GREEN MODE
+                GREENON BREEZE FRIEND
               </span>
-              <span class="summer-coordinate">SUMMER 2026 · GREEN BREEZE</span>
-              <h2>바다처럼 시원한<br />오늘을 만들어요</h2>
-              <p>기분 좋은 온도를 지키고 오늘의 GREEN POINT를 가볍게 모아 보세요.</p>
+              <span class="summer-coordinate">HELLO, SUMMER · GREEN BREEZE</span>
+              <h2>바람새와 함께<br />지구까지 시원하게</h2>
+              <p>바다처럼 기분 좋은 26°C 냉방으로 오늘의 GREEN POINT를 모아 보세요.</p>
               <button class="primary-button" type="button" data-go-to="mission">
                 오늘의 쿨링 미션
                 <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -86,6 +93,41 @@
               <span class="leaf leaf-two">◆</span>
             </div>
           </article>
+
+          <section class="breeze-type-card" aria-labelledby="breezeTypeTitle">
+            <div class="breeze-type-heading">
+              <div>
+                <p class="section-label">INTERACTIVE SUMMER TYPE</p>
+                <h2 id="breezeTypeTitle">바람에 반응하는 GREENON</h2>
+              </div>
+              <span class="breeze-live-badge"><span></span> LIVE</span>
+            </div>
+            <p class="breeze-type-description">글자 위를 천천히 움직여 여름 바람을 만들어 보세요.</p>
+
+            <div class="breeze-canvas-wrap" id="breezeCanvasWrap">
+              <canvas
+                id="breezeTypeCanvas"
+                role="img"
+                aria-label="점과 선으로 그린 COOL GREEN 글자가 커서에 반응하는 애니메이션"
+              ></canvas>
+              <span class="breeze-motion-note" id="breezeMotionNote" hidden>모션 줄이기 설정으로 움직임이 꺼져 있어요.</span>
+            </div>
+
+            <div class="breeze-controls">
+              <div class="breeze-mode-control" role="group" aria-label="글자 분산 모드">
+                <button class="breeze-mode-button is-active" type="button" data-breeze-mode="word" aria-pressed="true">단어 바람</button>
+                <button class="breeze-mode-button" type="button" data-breeze-mode="cursor" aria-pressed="false">커서 바람</button>
+              </div>
+              <label class="breeze-range-control">
+                <span>자간 <output id="breezeSpacingValue">2</output></span>
+                <input id="breezeSpacingRange" type="range" min="0" max="6" value="2" step="1" />
+              </label>
+              <label class="breeze-range-control">
+                <span>바람 반경 <output id="breezeRadiusValue">72</output></span>
+                <input id="breezeRadiusRange" type="range" min="36" max="120" value="72" step="4" />
+              </label>
+            </div>
+          </section>
 
           <section class="section-block weather-section" aria-labelledby="weatherTitle">
             <div class="section-heading">
