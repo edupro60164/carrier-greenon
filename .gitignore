@@ -1,0 +1,20 @@
+# 로컬 환경변수와 운영 비밀값
+.env
+.env.*
+!.env.example
+
+# Node 및 테스트 산출물
+node_modules/
+coverage/
+*.log
+
+# 운영체제·에디터 임시 파일
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 로컬 브라우저 검증 산출물
+.edge-*/
+*-qa-*.png
+phase*.png

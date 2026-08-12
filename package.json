@@ -1,0 +1,15 @@
+{
+  "name": "carrier-greenon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Carrier GreenON ESG cooling mission and reward web app",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check app.js && node --check server.js && node scripts/verify-production.mjs",
+    "build": "npm run check"
+  },
+  "engines": {
+    "node": ">=22.0.0 <25"
+  }
+}

@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: carrier-greenon
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    maxShutdownDelaySeconds: 15
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: WEATHER_API_URL
+        value: https://api.open-meteo.com/v1/forecast
+      - key: WEATHER_LOCATION_NAME
+        value: 서울
+      - key: WEATHER_LATITUDE
+        value: "37.5665"
+      - key: WEATHER_LONGITUDE
+        value: "126.9780"
+      - key: WEATHER_TIMEZONE
+        value: Asia/Seoul
