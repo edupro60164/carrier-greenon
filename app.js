@@ -67,6 +67,12 @@ const airconScenarios = {
     filter: 82,
     updatedAt: "방금 전 갱신",
     tone: "normal",
+    powerOn: true,
+    modeCode: "cool",
+    setTemperature: 26,
+    fanCode: "auto",
+    usageMinutes: 150,
+    sensorStatus: "normal",
   },
   eco: {
     statusLabel: "절전 운전",
@@ -80,6 +86,12 @@ const airconScenarios = {
     filter: 82,
     updatedAt: "방금 전 갱신",
     tone: "normal",
+    powerOn: true,
+    modeCode: "cool",
+    setTemperature: 27,
+    fanCode: "auto",
+    usageMinutes: 60,
+    sensorStatus: "normal",
   },
   filter: {
     statusLabel: "필터 점검 필요",
@@ -93,6 +105,12 @@ const airconScenarios = {
     filter: 12,
     updatedAt: "점검 알림 발생",
     tone: "danger",
+    powerOn: true,
+    modeCode: "cool",
+    setTemperature: 24,
+    fanCode: "high",
+    usageMinutes: 7680,
+    sensorStatus: "normal",
   },
   sensor: {
     statusLabel: "센서 오류",
@@ -106,6 +124,12 @@ const airconScenarios = {
     filter: 78,
     updatedAt: "센서 연결 끊김",
     tone: "danger",
+    powerOn: true,
+    modeCode: "error",
+    setTemperature: null,
+    fanCode: "stopped",
+    usageMinutes: 70,
+    sensorStatus: "error",
   },
   off: {
     statusLabel: "전원 꺼짐",
@@ -119,6 +143,12 @@ const airconScenarios = {
     filter: 82,
     updatedAt: "1분 전 갱신",
     tone: "off",
+    powerOn: false,
+    modeCode: "standby",
+    setTemperature: null,
+    fanCode: "stopped",
+    usageMinutes: 0,
+    sensorStatus: "normal",
   },
 };
 
@@ -127,6 +157,17 @@ const airconScenarioButtons = document.querySelectorAll("[data-aircon-scenario]"
 const filterProgress = document.querySelector("#filterProgress");
 const filterProgressBar = document.querySelector("#filterProgressBar");
 let currentAirconScenarioName = "normal";
+let currentAirconState = { ...airconScenarios.normal };
+
+// 화면 오른쪽 가상 리모컨은 현재 에어컨 상태와 같은 데이터를 읽고 변경합니다.
+const virtualRemote = document.querySelector("#virtualRemote");
+const remoteCollapseButton = document.querySelector("#remoteCollapseButton");
+const remoteActionButtons = document.querySelectorAll("[data-remote-action]");
+const remoteTemperature = document.querySelector("#remoteTemperature");
+const remotePowerState = document.querySelector("#remotePowerState");
+const remoteModeState = document.querySelector("#remoteModeState");
+const remoteFanState = document.querySelector("#remoteFanState");
+let remoteSaveTimer;
 
 // 화면에 표시할 현재 미션 상태이며, PHASE 8부터 Supabase 행을 이 객체에 반영합니다.
 const missionState = {
@@ -524,8 +565,49 @@ function getScenarioNameFromAirconRow(airconRow) {
   if (!airconRow.power_on) return "off";
   if (airconRow.sensor_status === "error" || airconRow.mode === "error") return "sensor";
   if (airconRow.filter_life <= 20) return "filter";
-  if (Number(airconRow.set_temperature) >= 27) return "eco";
-  return "normal";
+  if (airconRow.mode === "cool" && airconRow.fan_mode === "auto" && Number(airconRow.set_temperature) === 27) {
+    return "eco";
+  }
+  if (airconRow.mode === "cool" && airconRow.fan_mode === "auto" && Number(airconRow.set_temperature) === 26) {
+    return "normal";
+  }
+  return "remote";
+}
+
+/** Supabase의 가상 IoT 행을 카드와 리모컨이 함께 쓰는 화면 상태로 변환합니다. */
+function createAirconStateFromRow(airconRow) {
+  if (!airconRow) return { ...airconScenarios.normal };
+
+  const scenarioName = getScenarioNameFromAirconRow(airconRow);
+  const baseScenario = airconScenarios[scenarioName] ?? airconScenarios.normal;
+  if (scenarioName === "off" || scenarioName === "sensor" || scenarioName === "filter") {
+    return { ...baseScenario };
+  }
+
+  const modeLabels = { cool: "냉방", dry: "제습", fan: "송풍" };
+  const fanLabels = { auto: "자동", low: "약풍", medium: "중풍", high: "강풍", stopped: "정지" };
+  const setTemperature = Number(airconRow.set_temperature);
+  const temperature = Number.isFinite(setTemperature) ? setTemperature : 26;
+
+  return {
+    ...baseScenario,
+    statusLabel: temperature >= 27 ? "절전 운전" : "정상 운전",
+    statusTitle: `${modeLabels[airconRow.mode] ?? "냉방"} ${temperature}°C로 운전 중이에요`,
+    statusMessage: "가상 리모컨 설정과 미션 조건이 실시간으로 연결되어 있어요.",
+    power: "ON",
+    mode: modeLabels[airconRow.mode] ?? "냉방",
+    temperature: `${temperature}°C`,
+    fan: fanLabels[airconRow.fan_mode] ?? "자동",
+    filter: airconRow.filter_life,
+    updatedAt: "저장된 설정 불러옴",
+    tone: "normal",
+    powerOn: true,
+    modeCode: airconRow.mode,
+    setTemperature: temperature,
+    fanCode: airconRow.fan_mode,
+    usageMinutes: airconRow.usage_minutes,
+    sensorStatus: airconRow.sensor_status,
+  };
 }
 
 /**
@@ -620,7 +702,10 @@ async function loadSupabaseData(userId) {
     })),
   };
 
-  renderAirconScenario(getScenarioNameFromAirconRow(airconResponse.data));
+  renderAirconState(
+    createAirconStateFromRow(airconResponse.data),
+    getScenarioNameFromAirconRow(airconResponse.data),
+  );
   renderMissionState();
   renderWallet();
   renderRewardShop();
@@ -1292,11 +1377,11 @@ async function purchaseSelectedReward() {
  * 경고 또는 오류일 때만 is-danger 클래스를 붙여 Red UI가 나타나도록 합니다.
  * @param {string} scenarioName airconScenarios에 정의된 시나리오 이름
  */
-function renderAirconScenario(scenarioName) {
-  const scenario = airconScenarios[scenarioName] || airconScenarios.normal;
-  currentAirconScenarioName = airconScenarios[scenarioName] ? scenarioName : "normal";
+function renderAirconState(state, selectedScenarioName = "remote") {
+  currentAirconState = { ...state };
+  currentAirconScenarioName = selectedScenarioName;
 
-  Object.entries(scenario).forEach(([fieldName, value]) => {
+  Object.entries(currentAirconState).forEach(([fieldName, value]) => {
     const field = airconStatusCard.querySelector(`[data-aircon-field="${fieldName}"]`);
 
     if (field) {
@@ -1304,86 +1389,52 @@ function renderAirconScenario(scenarioName) {
     }
   });
 
-  airconStatusCard.classList.toggle("is-danger", scenario.tone === "danger");
-  airconStatusCard.classList.toggle("is-off", scenario.tone === "off");
+  airconStatusCard.classList.toggle("is-danger", currentAirconState.tone === "danger");
+  airconStatusCard.classList.toggle("is-off", currentAirconState.tone === "off");
 
   // 필터 막대의 길이와 접근성 값을 데이터에 맞게 함께 갱신합니다.
-  filterProgressBar.style.width = `${scenario.filter}%`;
-  filterProgress.setAttribute("aria-valuenow", String(scenario.filter));
+  filterProgressBar.style.width = `${currentAirconState.filter}%`;
+  filterProgress.setAttribute("aria-valuenow", String(currentAirconState.filter));
 
   airconScenarioButtons.forEach((button) => {
-    const isSelected = button.dataset.airconScenario === scenarioName;
-    const isDangerSelected = isSelected && scenario.tone === "danger";
+    const isSelected = button.dataset.airconScenario === selectedScenarioName;
+    const isDangerSelected = isSelected && currentAirconState.tone === "danger";
 
     button.classList.toggle("is-selected", isSelected && !isDangerSelected);
     button.classList.toggle("is-danger-selected", isDangerSelected);
     button.setAttribute("aria-pressed", String(isSelected));
   });
 
+  renderVirtualRemote();
+
   // 에어컨 상태가 바뀌면 미션 화면의 실시간 성공 조건도 함께 갱신합니다.
   refreshMissionConditions();
 }
 
-/** 화면에서 선택한 가상 에어컨 상태를 로그인 사용자의 aircon_status 행에 저장합니다. */
-async function saveAirconScenario(scenarioName) {
+/** 미리 준비된 상태 시나리오를 현재 가상 에어컨에 적용합니다. */
+function renderAirconScenario(scenarioName) {
+  const validScenarioName = airconScenarios[scenarioName] ? scenarioName : "normal";
+  renderAirconState({ ...airconScenarios[validScenarioName] }, validScenarioName);
+}
+
+/** 현재 화면 상태를 로그인 사용자의 aircon_status 행에 저장합니다. */
+async function saveAirconState(state = currentAirconState) {
   if (!isAuthenticated()) return;
 
-  const databaseScenarios = {
-    normal: {
-      power_on: true,
-      mode: "cool",
-      set_temperature: 26,
-      fan_mode: "auto",
-      usage_minutes: 150,
-      filter_life: 82,
-      sensor_status: "normal",
-      status_tone: "normal",
-    },
-    eco: {
-      power_on: true,
-      mode: "cool",
-      set_temperature: 27,
-      fan_mode: "auto",
-      usage_minutes: 60,
-      filter_life: 82,
-      sensor_status: "normal",
-      status_tone: "normal",
-    },
-    filter: {
-      power_on: true,
-      mode: "cool",
-      set_temperature: 24,
-      fan_mode: "high",
-      usage_minutes: 7680,
-      filter_life: 12,
-      sensor_status: "normal",
-      status_tone: "danger",
-    },
-    sensor: {
-      power_on: true,
-      mode: "error",
-      set_temperature: null,
-      fan_mode: "stopped",
-      usage_minutes: 70,
-      filter_life: 78,
-      sensor_status: "error",
-      status_tone: "danger",
-    },
-    off: {
-      power_on: false,
-      mode: "standby",
-      set_temperature: null,
-      fan_mode: "stopped",
-      usage_minutes: 0,
-      filter_life: 82,
-      sensor_status: "normal",
-      status_tone: "off",
-    },
+  const databaseState = {
+    power_on: state.powerOn,
+    mode: state.modeCode,
+    set_temperature: state.setTemperature,
+    fan_mode: state.fanCode,
+    usage_minutes: state.usageMinutes,
+    filter_life: state.filter,
+    sensor_status: state.sensorStatus,
+    status_tone: state.tone,
   };
 
   const { error } = await greenOnSupabase
     .from("aircon_status")
-    .update(databaseScenarios[scenarioName] ?? databaseScenarios.normal)
+    .update(databaseState)
     .eq("user_id", authState.account.userId);
 
   if (error) {
@@ -1392,16 +1443,115 @@ async function saveAirconScenario(scenarioName) {
   }
 }
 
+/** 리모컨 연속 조작은 마지막 상태만 잠깐 뒤 저장해 요청 순서가 뒤섞이지 않게 합니다. */
+function queueAirconStateSave() {
+  window.clearTimeout(remoteSaveTimer);
+  const stateToSave = { ...currentAirconState };
+  remoteSaveTimer = window.setTimeout(() => saveAirconState(stateToSave), 250);
+}
+
+/** 리모컨 액정과 버튼 상태를 현재 가상 에어컨 데이터에 맞춰 표시합니다. */
+function renderVirtualRemote() {
+  remoteTemperature.textContent = currentAirconState.powerOn
+    ? `${currentAirconState.setTemperature}°`
+    : "--";
+  remotePowerState.textContent = currentAirconState.powerOn ? "ON" : "OFF";
+  remoteModeState.textContent = currentAirconState.mode;
+  remoteFanState.textContent = currentAirconState.fan;
+  virtualRemote.classList.toggle("is-off", !currentAirconState.powerOn);
+  virtualRemote.classList.toggle("has-danger", currentAirconState.tone === "danger");
+}
+
+/** 작은 화면에서는 리모컨을 접어 콘텐츠를 가리지 않고, 필요할 때 바로 펼칠 수 있게 합니다. */
+function setVirtualRemoteCollapsed(isCollapsed) {
+  virtualRemote.classList.toggle("is-collapsed", isCollapsed);
+  remoteCollapseButton.setAttribute("aria-expanded", String(!isCollapsed));
+  remoteCollapseButton.setAttribute("aria-label", isCollapsed ? "가상 리모컨 펼치기" : "가상 리모컨 접기");
+}
+
+/** 정상 상태의 온도·모드·풍량을 바꾼 새 리모컨 화면 상태를 만듭니다. */
+function createRemoteAirconState(changes) {
+  const nextState = { ...currentAirconState, ...changes };
+  const targetTemperature = Number(missionDefinition?.target_temperature ?? 26);
+  const meetsTemperatureMission = nextState.setTemperature >= targetTemperature;
+
+  return {
+    ...nextState,
+    statusLabel: meetsTemperatureMission ? "친환경 운전" : "냉방 운전",
+    statusTitle: `${nextState.mode} ${nextState.setTemperature}°C로 운전 중이에요`,
+    statusMessage: meetsTemperatureMission
+      ? "가상 리모컨 설정이 오늘의 미션 조건에 맞아요."
+      : `${targetTemperature}°C 이상으로 올리면 오늘의 미션 조건을 충족해요.`,
+    power: "ON",
+    temperature: `${nextState.setTemperature}°C`,
+    updatedAt: "리모컨에서 방금 변경",
+    tone: "normal",
+    powerOn: true,
+    sensorStatus: "normal",
+  };
+}
+
+/** 리모컨 버튼 동작을 가상 IoT 상태와 미션 조건에 동시에 반영합니다. */
+function handleRemoteAction(actionName) {
+  if (actionName === "power") {
+    renderAirconScenario(currentAirconState.powerOn ? "off" : "normal");
+    queueAirconStateSave();
+    showToast(`가상 에어컨 전원을 ${currentAirconState.powerOn ? "켰어요" : "껐어요"}.`);
+    return;
+  }
+
+  if (!currentAirconState.powerOn) {
+    showToast("먼저 리모컨의 전원 버튼을 눌러 주세요.");
+    return;
+  }
+
+  if (currentAirconState.tone === "danger") {
+    showToast("필터·센서 오류를 정상 운전 시나리오에서 먼저 해제해 주세요.", "danger");
+    return;
+  }
+
+  const modeCycle = [
+    { label: "냉방", code: "cool" },
+    { label: "제습", code: "dry" },
+    { label: "송풍", code: "fan" },
+  ];
+  const fanCycle = [
+    { label: "자동", code: "auto" },
+    { label: "약풍", code: "low" },
+    { label: "중풍", code: "medium" },
+    { label: "강풍", code: "high" },
+  ];
+  let changes = {};
+
+  if (actionName === "temperature-down" || actionName === "temperature-up") {
+    const direction = actionName === "temperature-up" ? 1 : -1;
+    const nextTemperature = Math.min(30, Math.max(18, currentAirconState.setTemperature + direction));
+    changes = { setTemperature: nextTemperature };
+  } else if (actionName === "mode") {
+    const currentIndex = Math.max(0, modeCycle.findIndex((item) => item.code === currentAirconState.modeCode));
+    const nextMode = modeCycle[(currentIndex + 1) % modeCycle.length];
+    changes = { mode: nextMode.label, modeCode: nextMode.code };
+  } else if (actionName === "fan") {
+    const currentIndex = Math.max(0, fanCycle.findIndex((item) => item.code === currentAirconState.fanCode));
+    const nextFan = fanCycle[(currentIndex + 1) % fanCycle.length];
+    changes = { fan: nextFan.label, fanCode: nextFan.code };
+  }
+
+  renderAirconState(createRemoteAirconState(changes));
+  queueAirconStateSave();
+  showToast(`리모컨 설정: ${currentAirconState.mode} · ${currentAirconState.temperature} · ${currentAirconState.fan}`);
+}
+
 /**
  * 현재 가상 에어컨 데이터가 오늘의 미션 조건을 충족하는지 계산합니다.
  * 화면 표시와 +30분 판정이 같은 결과를 사용하도록 한 곳에서 조건을 관리합니다.
  * @returns {Record<string, {met: boolean, value: string}>} 조건별 충족 여부와 안내 문구
  */
 function getMissionConditions() {
-  const scenario = airconScenarios[currentAirconScenarioName];
-  const numericTemperature = Number.parseInt(scenario.temperature, 10);
+  const scenario = currentAirconState;
+  const numericTemperature = scenario.setTemperature;
   const targetTemperature = Number(missionDefinition?.target_temperature ?? 26);
-  const sensorIsNormal = currentAirconScenarioName !== "sensor";
+  const sensorIsNormal = scenario.sensorStatus === "normal";
 
   return {
     power: {
@@ -1976,7 +2126,7 @@ airconScenarioButtons.forEach((button) => {
     const selectedScenario = airconScenarios[scenarioName];
 
     renderAirconScenario(scenarioName);
-    await saveAirconScenario(scenarioName);
+    await saveAirconState();
 
     if (selectedScenario.tone === "danger") {
       showToast(`${selectedScenario.statusLabel}: 에어컨 상태를 확인해 주세요.`, "danger");
@@ -1984,6 +2134,15 @@ airconScenarioButtons.forEach((button) => {
       showToast(`${selectedScenario.statusLabel} 상태로 변경했어요.`);
     }
   });
+});
+
+// 오른쪽 리모컨 조작은 같은 가상 IoT 상태와 미션 판정값을 즉시 바꿉니다.
+remoteActionButtons.forEach((button) => {
+  button.addEventListener("click", () => handleRemoteAction(button.dataset.remoteAction));
+});
+
+remoteCollapseButton.addEventListener("click", () => {
+  setVirtualRemoteCollapsed(!virtualRemote.classList.contains("is-collapsed"));
 });
 
 // 미션 참여, 시간 진행, 재도전 버튼을 각각의 상태 처리 함수와 연결합니다.
@@ -2058,6 +2217,7 @@ changeView(initialView, false);
 
 // 페이지가 처음 열릴 때는 정상 운전 시뮬레이션 데이터를 표시합니다.
 renderAirconScenario("normal");
+setVirtualRemoteCollapsed(window.matchMedia("(max-width: 900px)").matches);
 
 // 샘플 날씨를 즉시 보여 준 뒤 공식 API 응답이 오면 실시간 데이터로 교체합니다.
 renderWeather(SAMPLE_WEATHER, {
