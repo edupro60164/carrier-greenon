@@ -143,10 +143,10 @@
 
 ## FINAL CHECK
 
-* \[ ] PROJECT.md 요구사항 누락 검사
+* \[x] PROJECT.md 요구사항 누락 검사
 * \[ ] 모바일 화면 검사
-* \[ ] 정상 상태 Blue 확인
-* \[ ] Warning/Error Red 확인
-* \[ ] Supabase 보안 확인
+* \[x] 정상 상태 Blue 확인
+* \[x] Warning/Error Red 확인
+* \[x] Supabase 보안 확인
 * \[ ] 전체 기능 회귀 테스트
-* \[ ] 최종 배포 확인
+* \[x] 최종 배포 확인
