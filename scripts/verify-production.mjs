@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import { Script } from "node:vm";
 
 const requiredFiles = [
@@ -12,6 +12,12 @@ const requiredFiles = [
   "README.md",
 ];
 
+// 홈 히어로가 빈 화면으로 배포되지 않도록 생성 이미지의 존재도 별도로 검사합니다.
+const requiredAssetFiles = [
+  "assets/greenon-clear-water-hero.webp",
+  "assets/greenon-cool-cloud-character.webp",
+];
+
 const forbiddenPatterns = [
   new RegExp(`sb_${"secret"}_[A-Za-z0-9_-]+`),
   new RegExp(`${"SUPABASE_SERVICE_ROLE_KEY"}\\s*=`),
@@ -22,6 +28,10 @@ const forbiddenPatterns = [
 const fileContents = new Map();
 for (const fileName of requiredFiles) {
   fileContents.set(fileName, await readFile(fileName, "utf8"));
+}
+
+for (const assetFileName of requiredAssetFiles) {
+  await access(assetFileName);
 }
 
 new Script(fileContents.get("app.js"), { filename: "app.js" });
@@ -63,4 +73,6 @@ for (const fileName of await collectTextFiles()) {
   }
 }
 
-console.log(`Production verification passed (${requiredFiles.length} required files).`);
+console.log(
+  `Production verification passed (${requiredFiles.length} required files, ${requiredAssetFiles.length} assets).`,
+);

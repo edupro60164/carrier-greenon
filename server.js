@@ -62,6 +62,9 @@ const publicFiles = new Map([
   ["/index.html", { file: "index.html", type: "text/html; charset=utf-8" }],
   ["/app.js", { file: "app.js", type: "text/javascript; charset=utf-8" }],
   ["/styles.css", { file: "styles.css", type: "text/css; charset=utf-8" }],
+  // 홈에서 사용하는 생성 이미지만 명시적으로 공개해 다른 프로젝트 파일 노출을 막습니다.
+  ["/assets/greenon-clear-water-hero.webp", { file: "assets/greenon-clear-water-hero.webp", type: "image/webp" }],
+  ["/assets/greenon-cool-cloud-character.webp", { file: "assets/greenon-cool-cloud-character.webp", type: "image/webp" }],
 ]);
 
 /** 공개 설정을 JavaScript 문맥에 안전하게 직렬화합니다. */
