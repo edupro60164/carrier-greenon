@@ -19,6 +19,11 @@ Carrier GreenON은 캐리어 에어컨 사용자를 위한 ESG 친환경 냉방 
 - Weather: Open-Meteo Forecast API
 - Deployment: Render Web Service
 
+## 운영 서비스
+
+- 서비스 URL: [https://carrier-greenon-ik93.onrender.com](https://carrier-greenon-ik93.onrender.com)
+- 상태 점검: [https://carrier-greenon-ik93.onrender.com/health](https://carrier-greenon-ik93.onrender.com/health)
+
 ## 로컬 실행
 
 1. `.env.example`을 복사해 `.env`를 만듭니다.
@@ -52,7 +57,12 @@ npm start
 
 SQL 파일은 [supabase/migrations](./supabase/migrations)에 적용 순서대로 정리되어 있습니다. 운영 데이터 변경은 Supabase 마이그레이션을 통해 적용하고, 모든 공개 테이블에 RLS와 최소 권한을 유지합니다.
 
-## Render 배포 준비
+Supabase Dashboard의 **Authentication → URL Configuration**에서 다음 값을 등록해야 확인 이메일 이후 운영 서비스로 돌아올 수 있습니다.
+
+- Site URL: `https://carrier-greenon-ik93.onrender.com`
+- Redirect URLs: `https://carrier-greenon-ik93.onrender.com/**`
+
+## Render 배포
 
 저장소 루트의 `render.yaml`은 다음 구성을 선언합니다.
 
@@ -62,7 +72,7 @@ SQL 파일은 [supabase/migrations](./supabase/migrations)에 적용 순서대�
 - Health Check: `/health`
 - `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`는 Dashboard 입력값 사용
 
-Render 서비스 생성 후 환경변수를 등록하고 첫 배포를 실행합니다. 서버는 Render 요구사항에 맞춰 `0.0.0.0`과 `PORT`에 바인딩합니다.
+Render 서비스 `carrier-greenon`은 GitHub `main` 브랜치 변경을 자동 배포합니다. 서버는 Render 요구사항에 맞춰 `0.0.0.0`과 `PORT`에 바인딩합니다.
 운영 환경에서 필수 Supabase 값이 없거나 publishable key 형식이 아니면 `/health`가 `503`을 반환해 잘못된 배포를 차단합니다.
 
 ## 보안 메모

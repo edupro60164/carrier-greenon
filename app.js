@@ -909,6 +909,8 @@ async function handleSignup(event) {
       email,
       password,
       options: {
+        // 확인 이메일을 누르면 현재 실행 중인 GreenON 주소로 돌아오게 합니다.
+        emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
         data: {
           display_name: name,
         },
